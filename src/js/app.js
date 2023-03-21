@@ -32,7 +32,9 @@ const userName = document.querySelector("#user_name"),
 	userPhone = document.querySelector("#user_phone"),
 	userPersonalId = document.querySelector("#user_personal-id"),
 	userEmail = document.querySelector("#user_email"),
-	userZipCode = document.querySelector("#user_zip-code");
+	userZipCode = document.querySelector("#user_zip-code"),
+	// user id ფორმში, რომელიც გვჭირდება დაედითებისთვის
+	user_id = document.querySelector("#user_id");
 let userGender = document.querySelector("[name='gender']");
 
 // const user = {
@@ -45,18 +47,74 @@ let userGender = document.querySelector("[name='gender']");
 // 	zip_code: "1245",
 // };
 
+// TODO: დაასრულეთ შემდეგი ფუნქციები
+function renderUsers(usersArray) {
+	// TODO: usersArray არის სერვერიდან დაბრუნებული ობიექტების მასივი
+	// TODO: ამ მონაცმების მიხედვით html ში ჩასვით ცხრილი როგორც "ცხრილი.png" შია
+
+	console.log(usersArray);
+	userActions(); // ყოველ რენდერზე ახლიდან უნდა მივაბათ ივენთ ლისნერები
+}
+
+// TODO: დაასრულე
+function userActions() {
+	// 1. ცხრილში ღილაკებზე უნდა მიამაგროთ event listener-ები
+	// 2. იქნება 2 ღილაკი რედაქტირება და წაშლა როგორც "ცხრილი.png" ში ჩანს
+	// 3. id შეინახეთ data-user-id ატრიბუტად ღილაკებზე, data ატრიბუტებზე წვდომა შეგიძლიათ dataset-ის გამოყენებით მაგ:selectedElement.dataset
+	// 4. წაშლა ღილაკზე დაჭერისას უნდა გაიგზავნოს წაშლის მოთხოვნა (deleteUserFn ფუნქციის მეშვეობით) სერვერზე და გადაეცეს id
+	// 5. ედიტის ღილაკზე უნდა გაიხსნას მოდალი სადაც ფორმი იქნება იმ მონაცემებით შევსებული რომელზეც მოხდა კლიკი. ედიტის ღილაკზე უნდა გამოიძახოთ getUserFn ფუნქცია და რომ დააბრუნებს ერთი მომხმარებლის დატას (ობიექტს და არა მასივს)  ეს დატა უნდა შეივსოს ფორმში და ამის შემდეგ შეგიძლიათ დააედიტოთ ეს ინფორმაცია და ფორმის დასაბმითებისას უნდა მოხდეს updateUserFn() ფუნქციის გამოძახება, სადაც გადასცემთ განახლებულ იუზერის ობიექტს, გვჭირდება იუზერის აიდიც, რომელიც  მოდალის გახსნისას user_id-ის (hidden input არის და ვიზუალურად არ ჩანს) value-ში შეგიძლიათ შეინახოთ
+}
+
 function getAllUsersFn() {
 	fetch("https://borjomi.loremipsum.ge/api/all-users")
 		.then((res) => {
 			return res.json();
 		})
 		.then((data) => {
-			console.log(data.users);
-			// renderUsers(data.users)
+			// console.log(data.users);
+
+			// html-ში გამოტანა მონაცემების
+			renderUsers(data.users);
 		});
 }
 
-getAllUsersFn();
+function deleteUserFn(id) {
+	fetch(`https://borjomi.loremipsum.ge/api/delete-user/${id}`, {
+		method: "delete",
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			console.log(data);
+			// გვიბრუნებს სტატუსს
+			getAllUsersFn(); // შენახვის, ედიტირების და წაშლის შემდეგ ახლიდან უნდა წამოვიღოთ დატა
+			// ამიტომ აქ ყველგან დაგვჭირდება უბრალოდ ამ ფუნქციის გამოძახება, რომელიც ხელახლა გადახატავს ინფორმაციას
+		})
+		.catch((error) => {
+			console.log(error);
+		});
+}
+
+function getUserFn(id) {
+	fetch(`https://borjomi.loremipsum.ge/api/get-user/${id}`, {
+		method: "get",
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			// გვიბრუნებს იუზერის ობიექტს
+			console.log(data);
+			//TODO: შენახვის, ედიტირების და წაშლის შემდეგ ახლიდან წამოიღეთ დატა
+		})
+		.catch((error) => {
+			console.log(error);
+		});
+}
+
+function updateUserFn(userObj) {
+	// მიიღებს დაედითებულ ინფორმაციას და გააგზავნით სერვერზე
+	// TODO დაასრულეთ ფუნქცია
+	//  method: "put",  https://borjomi.loremipsum.ge/api/update-user/${userObj.id}
+	// TODO: შენახვის, ედიტირების და წაშლის შემდეგ ახლიდან წამოიღეთ დატა
+}
 
 function createUserFn(user) {
 	fetch("https://borjomi.loremipsum.ge/api/register", {
@@ -72,9 +130,14 @@ function createUserFn(user) {
 			if (data.status) {
 				form.reset();
 				modal.classList.remove("active-modal");
+
+				// შენახვის, ედიტირების და წაშლის შემდეგ ხელახლა გამოგვაქვს ყველა იუზერი
+				getAllUsersFn();
 			}
 		});
 }
+
+getAllUsersFn();
 
 form.addEventListener("submit", (e) => {
 	e.preventDefault();
@@ -82,6 +145,7 @@ form.addEventListener("submit", (e) => {
 	// console.log(userGender);
 
 	const userData = {
+		id: user_id.value, //ეს #user_id hidden input გვაქვს html-ში და ამას გამოვიყენებთ მხოლოდ დაედითებისთვის
 		first_name: userName.value,
 		last_name: userSurname.value,
 		phone: userPhone.value,
@@ -93,9 +157,14 @@ form.addEventListener("submit", (e) => {
 
 	// console.log(JSON.stringify(userData));
 
-	if (true) {
-		createUserFn(userData);
-	}
+	// if (true) {
+	// 	createUserFn(userData);
+	// }
+
+	//  TODO: თუ user_id.value არის ცარიელი (თავიდან ცარიელია) მაშინ უნდა შევქმნათ  -->  createUserFn(user);
+
+	// თუ დაედითებას ვაკეთებთ, ჩვენ ვანიჭებთ მნიშვნელობას userActions ფუნქციაში
+	// TODO: თუ user_id.value არის (არაა ცარიელი სტრინგი) მაშინ უნდა დავაედიტოთ, (როცა ფორმს ედითის ღილაკის შემდეგ იუზერის ინფუთით ვავსებთ, ვაედითებთ და ვასაბმითებთ) -->  updateUserFn(user);
 });
 
 function getCountriesData() {
